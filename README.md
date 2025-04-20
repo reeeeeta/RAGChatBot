@@ -1,4 +1,4 @@
-# 📚 RAGChatBot：基於 Embedchain 的資料庫系統教學助教
+# 📚 RAGChatBot：基於 Embedchain 的 AI 教學助理
 
 本專案是一個使用 [Embedchain] 與 [Ollama] 架構的 RAG 聊天機器人，支援上傳 PDF 並根據其內容進行問答，內建多種 LLM 與 Embedding 模型可切換。
 
