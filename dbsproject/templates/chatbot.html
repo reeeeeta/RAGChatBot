@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DBSChatBot</title>
+  </head>
+  <body>
+    <nav class="navbar">
+      <h1>&nbspDBSChatBot</h1>
+    </nav>
+    <div id="conversation-container">
+      <div id="conversation">
+        <!-- <div class="textbox">
+          <p>{{ response }}</p>
+        </div> -->
+      </div>
+      <!-- <div style="display: flex; align-items: center"> -->
+      <form method="post" style="display: flex; align-items: center">
+        {% csrf_token %}
+        <!-- <div> -->
+        <!-- <textarea
+          type="text"
+          id="userInput"
+          style="resize: none"
+          placeholder="輸入你的問題..."
+        ></textarea> -->
+        <input
+          type="text"
+          name="user_question"
+          id="userInput"
+          placeholder="輸入你的問題..."
+        />
+        <button
+          type="submit"
+          id="submitBtn"
+          class="btn"
+          onclick="submitQuestion()"
+          disabled="true"
+        >
+          <i class="bi bi-send"></i>
+        </button>
+        <!-- </div> -->
+      </form>
+      <!-- </div> -->
+    </div>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+      // var inputValue = document.getElementById("userInput").value.trim();
+      // if (inputValue !== "") {
+      //   document.getElementById("submitBtn").disabled = false;
+      // }
+      function checkInput() {
+        var inputValue = this.value.trim();
+        var submitBtn = document.getElementById("submitBtn");
+
+        if (inputValue === "") {
+          submitBtn.disabled = true;
+        } else {
+          submitBtn.disabled = false;
+        }
+      }
+      document
+        .getElementById("userInput")
+        .addEventListener("input", checkInput);
+
+      // function submitQuestion() {
+      //   var userInput = document.getElementById("userInput").value;
+      //   addToConversation("你： " + userInput, "user-message");
+      //   var submitBtn = document.getElementById("submitBtn");
+      //   submitBtn.disabled = true;
+
+      //   // 發送 AJAX 請求到後端以獲取回應
+      //   var xhr = new XMLHttpRequest();
+      //   xhr.open("POST", "/chatbot/", true);
+      //   xhr.setRequestHeader("Content-Type", "application/json");
+      //   xhr.onreadystatechange = function () {
+      //     if (xhr.readyState === 4 && xhr.status === 200) {
+      //       // 從後端獲取的回應
+      //       // var response = xhr.responseText;
+      //       // response.setContentType("html/text");
+      //       var response = xhr.responseText;
+      //       console.log(response);
+      //       // response.flush();
+      //       // response.close();
+      //       // var response = response;
+      //       // var responseData = JSON.parse(xhr.responseText);
+      //       // var response = responseData.response;
+
+      //       // 將回應添加到對話框
+      //       addToConversation("系統： " + response, "bot-message");
+
+      //       // 清空輸入框
+      //       document.getElementById("userInput").value = "";
+
+      //       // 啟用提交按鈕
+      //       submitBtn.disabled = false;
+      //     }
+      //   };
+      //   // 發送請求，傳遞使用者輸入的問題
+      //   var data = JSON.stringify({ user_question: userInput });
+      //   xhr.send(data);
+      //   console.log(data);
+      // }
+
+      function submitQuestion() {
+        var userInput = document.getElementById("userInput").value;
+        addToConversation("你： " + userInput, "user-message");
+        var submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = true;
+
+        // 發送 AJAX 請求到後端以獲取回應
+        $.ajax({
+          type: "POST",
+          url: "/chatbot/",
+          datatype: "json",
+          data: {
+            user_question: userInput,
+          },
+
+          success: function (response) {
+            // var el = response.find("p");
+            // console.log(response.type);
+            // response = el.innerHTML;
+
+            console.log(response);
+            // 將回應添加到對話框
+            addToConversation("DBS-Bot： " + response.response, "bot-message");
+
+            // 清空輸入框
+            $("#userInput").val("");
+
+            // 啟用提交按鈕
+            submitBtn.disabled = false;
+          },
+          error: function (xhr, status, error) {
+            // 處理錯誤
+            console.error("發生錯誤:", error);
+            // 在對話框中顯示錯誤信息
+            addToConversation("系統： 無法獲取回應", "bot-message");
+
+            // 清空輸入框
+            $("#userInput").val("");
+
+            // 啟用提交按鈕
+            submitBtn.disabled = true;
+          },
+        });
+      }
+
+      function addToConversation(message, className) {
+        var conversationDiv = document.getElementById("conversation");
+        var messageDiv = document.createElement("div");
+        messageDiv.textContent = message;
+        messageDiv.classList.add(className);
+        conversationDiv.appendChild(messageDiv);
+      }
+    </script>
+  </body>
+</html>
+<style>
+  .navbar {
+    font-family: "Times New Roman", Times, serif;
+    color: white;
+    background-color: rgb(23, 55, 83);
+    padding: 10px 20px;
+    text-align: center;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    height: 100vh; /* 讓 body 滿版 */
+    display: flex;
+    flex-direction: column;
+  }
+
+  #conversation-container {
+    max-width: 90%;
+    width: 100%;
+    margin: 10px auto; /* 上下留 10px 的空間 */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; /* 讓對話框最大高度為螢幕的 90% */
+  }
+
+  #conversation {
+    flex-grow: 1; /* 讓對話框擴展佔據可用的空間 */
+    overflow-y: auto;
+    padding: 10px;
+    margin: 0;
+  }
+
+  #userInputContainer {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    background-color: #f9f9f9;
+  }
+
+  #userInput {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+
+  #userInput:focus {
+    border-color: #005f73;
+  }
+
+  #submitBtn {
+    width: 80px;
+    padding: 10px;
+    background-color: rgb(23, 55, 83);
+    color: white;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    outline: none;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+
+  #submitBtn:hover {
+    background-color: #005f73;
+  }
+
+  .message {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 5px;
+  }
+
+  .user-message {
+    text-align: right;
+    color: rgb(29, 112, 162);
+    /* background-color: #e0f7fa; */
+  }
+
+  .bot-message {
+    text-align: left;
+    color: #333;
+    /* background-color: #f1f1f1; */
+  }
+
+  /* 媒體查詢：針對小螢幕的調整 */
+  @media (max-width: 600px) {
+    #conversation-container {
+      max-width: 100%;
+      margin: 10px 0; /* 小螢幕下上下留 10px */
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #conversation {
+      flex-grow: 1;
+    }
+
+    #userInput {
+      width: calc(100% - 70px);
+    }
+
+    #submitBtn {
+      width: 60px;
+    }
+  }
+
+  /* 媒體查詢：針對大螢幕的調整 */
+  @media (min-width: 601px) {
+    #conversation-container {
+      max-height: 90vh; /* 大螢幕下最大高度為螢幕的 90% */
+      margin: 20px auto; /* 大螢幕上下留 20px 空間 */
+    }
+
+    #conversation {
+      height: calc(90vh - 120px); /* 減去輸入框和其他元素所佔的高度 */
+      overflow-y: auto;
+    }
+  }
+</style>

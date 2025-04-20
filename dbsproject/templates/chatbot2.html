@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DBSChatBot</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="container-fluid d-flex">
+      <!-- 左側上傳 PDF -->
+      <div id="pdf-upload-container" class="p-3 border-end" style="width: 25%">
+        <h5>上傳教材PDF檔</h5>
+        <input
+          type="file"
+          id="pdfInput"
+          multiple
+          accept="application/pdf"
+          class="form-control mb-2"
+        />
+        <ul id="pdf-list" class="list-group mt-3"></ul>
+        <button
+          class="btn btn-primary w-100"
+          style="background-color: rgb(23, 55, 83)"
+          onclick="uploadPDF()"
+        >
+          上傳
+        </button>
+      </div>
+
+      <!-- 右側聊天區域 -->
+      <div id="chat-container" class="p-3" style="width: 75%">
+        <nav class="navbar bg-dark text-white p-2">
+          <h1>&nbspDBSChatBot</h1>
+        </nav>
+        <link
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          rel="stylesheet"
+        />
+
+        <div
+          id="conversation-container"
+          class="border p-3"
+          style="height: 500px; overflow-y: auto"
+        ></div>
+        <div class="input-group mt-2">
+          <input
+            type="text"
+            id="userInput"
+            class="form-control"
+            placeholder="輸入你的問題..."
+          />
+          <button
+            class="btn btn-success"
+            id="submitBtn"
+            onclick="submitQuestion()"
+            disabled
+          >
+            送出
+          </button>
+        </div>
+        <div style="text-align: center; margin-top: 20px">
+          <a
+            href="http://127.0.0.1:8000/home/"
+            class="home-link"
+            style="
+              font-size: 20px;
+              color: rgb(23, 55, 83);
+              text-decoration: none;
+              display: inline-flex;
+              align-items: center;
+            "
+          >
+            <i
+              class="fas fa-home"
+              style="color: rgb(23, 55, 83); margin-right: 8px"
+            ></i>
+            返回首頁
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        $("#userInput").on("input", function () {
+          $("#submitBtn").prop("disabled", $(this).val().trim() === "");
+        });
+      });
+
+      function uploadPDF() {
+        let files = $("#pdfInput")[0].files;
+        if (files.length === 0) {
+          alert("請選擇 PDF 檔案");
+          return;
+        }
+
+        let formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+          formData.append("pdf_files", files[i]); // 確保所有檔案都被附加
+        }
+
+        $.ajax({
+          url: "/upload_pdf/",
+          type: "POST",
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function (response) {
+            alert("PDF 上傳成功");
+            console.log("已上傳的文件:", response.files);
+          },
+          error: function (xhr) {
+            alert("上傳失敗: " + xhr.responseText);
+          },
+        });
+      }
+
+      $("#pdfInput").on("change", function () {
+        let files = this.files;
+        let list = $("#pdf-list");
+        list.empty();
+        for (let i = 0; i < files.length; i++) {
+          let listItem = $(
+            '<li class="list-group-item d-flex justify-content-between align-items-center"></li>'
+          );
+          listItem.text(files[i].name);
+          listItem.data("index", i);
+          let removeBtn = $('<button class="btn btn-sm btn-danger">X</button>');
+          removeBtn.on("click", function () {
+            listItem.remove();
+          });
+          listItem.append(removeBtn);
+          list.append(listItem);
+        }
+      });
+
+      function submitQuestion() {
+        let userInput = $("#userInput").val();
+        $("#conversation-container").append(
+          `<div class='text-end text-primary'>你: ${userInput}</div>`
+        );
+        $("#submitBtn").prop("disabled", true);
+
+        $.post("/chatbot/", { user_question: userInput }, function (response) {
+          $("#conversation-container").append(
+            `<div class='text-start text-secondary'>DBS-Bot: ${response.response}</div>`
+          );
+          $("#userInput").val("").focus();
+          $("#submitBtn").prop("disabled", false);
+        }).fail(function () {
+          alert("發生錯誤");
+          $("#submitBtn").prop("disabled", false);
+        });
+      }
+    </script>
+  </body>
+</html>
+<style>
+  .navbar {
+    font-family: "Times New Roman", Times, serif;
+    color: white;
+    background-color: rgb(23, 55, 83);
+    padding: 10px 20px;
+    text-align: center;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    height: 100vh; /* 讓 body 滿版 */
+    display: flex;
+    flex-direction: column;
+  }
+  .container-fluid {
+    display: flex;
+    flex-wrap: wrap;
+    height: 100%;
+    flex: 1 1 auto; /* 確保佔滿父容器 */
+  }
+
+  #conversation-container {
+    /* max-width: 90%; */
+    width: 100%;
+    margin: 10px auto; /* 上下留 10px 的空間 */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    /* max-height: 90vh; */
+  }
+
+  #conversation {
+    flex-grow: 1; /* 讓對話框擴展佔據可用的空間 */
+    overflow-y: auto;
+    padding: 10px;
+    margin: 0;
+  }
+
+  #userInputContainer {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    background-color: #f9f9f9;
+  }
+
+  #userInput {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+
+  #userInput:focus {
+    border-color: #005f73;
+  }
+
+  #submitBtn {
+    width: 80px;
+    padding: 10px;
+    background-color: rgb(23, 55, 83);
+    color: white;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    outline: none;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+
+  #submitBtn:hover {
+    background-color: #005f73;
+  }
+
+  .message {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 5px;
+  }
+
+  .user-message {
+    text-align: right;
+    color: rgb(29, 112, 162);
+    /* background-color: #e0f7fa; */
+  }
+
+  .bot-message {
+    text-align: left;
+    color: #333;
+    /* background-color: #f1f1f1; */
+  }
+
+  /* 媒體查詢：針對小螢幕的調整 */
+  @media (max-width: 600px) {
+    #conversation-container {
+      max-width: 100%;
+      margin: 10px 0; /* 小螢幕下上下留 10px */
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #conversation {
+      flex-grow: 1;
+    }
+
+    #userInput {
+      width: calc(100% - 70px);
+    }
+
+    #submitBtn {
+      width: 60px;
+    }
+  }
+
+  /* 媒體查詢：針對大螢幕的調整 */
+  @media (min-width: 601px) {
+    #conversation-container {
+      max-height: 90vh; /*大螢幕下最大高度為螢幕的 90%*/
+      margin: 20px auto; /* 大螢幕上下留 20px 空間 */
+    }
+
+    #conversation {
+      height: calc(90vh - 120px); /* 減去輸入框和其他元素所佔的高度 */
+      overflow-y: auto;
+    }
+  }
+</style>

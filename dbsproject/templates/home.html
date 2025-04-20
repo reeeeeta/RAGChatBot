@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>選擇模型</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: rgb(23, 55, 83);
+        color: white;
+      }
+
+      .container {
+        text-align: center;
+        background: #ffffff;
+        padding: 40px 30px;
+        border-radius: 15px;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        width: 70%;
+        max-width: 500px;
+        color: #283b42;
+      }
+
+      h1 {
+        font-size: 36px;
+        margin-bottom: 20px;
+        font-weight: bold;
+      }
+
+      p {
+        font-size: 18px;
+        margin-bottom: 40px;
+      }
+
+      .buttons,
+      .embedder-options {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .button {
+        padding: 20px 40px;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s;
+        background-color: #1d6a96;
+      }
+
+      .button:hover {
+        /* background-color: #85b8c8; */
+        transform: scale(1.05);
+      }
+
+      .button:active {
+        transform: scale(0.98);
+      }
+
+      /* 選中按鈕變色 */
+      .button.selected {
+        background-color: #f39c12;
+      }
+
+      .next-button {
+        background-color: #2d8b57;
+        margin-top: 30px;
+        display: none;
+      }
+
+      .next-button:hover {
+        background-color: #65c88e;
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>歡迎使用教學助理系統</h1>
+      <p>請選擇您想要使用的模型：</p>
+      <div class="buttons">
+        <!-- <button
+          class="button model-button"
+          onclick="selectModel(this, 'openai')"
+        >
+          OpenAI
+        </button> -->
+        <button
+          class="button model-button"
+          onclick="selectModel(this, 'deepseek-r1:14b')"
+        >
+          DeepSeek-r1:14b
+        </button>
+        <button
+          class="button model-button"
+          onclick="selectModel(this, 'gemma3:12b')"
+        >
+          Gemma3:12b
+        </button>
+        <button
+          class="button model-button"
+          onclick="selectModel(this, 'llama3.2')"
+        >
+          Llama 3.2
+        </button>
+        <button
+          class="button model-button"
+          onclick="selectModel(this, 'llava')"
+        >
+          LLaVa
+        </button>
+      </div>
+
+      <div class="embedder-options">
+        <p>請選擇嵌入模型：</p>
+        <button
+          class="button embedder-button"
+          onclick="selectEmbedder(this, 'all-MiniLM-L6-v2')"
+        >
+          HuggingFace - All MiniLM-L6-v2
+        </button>
+        <button
+          class="button embedder-button"
+          onclick="selectEmbedder(this, 'all-mpnet-base-v2')"
+        >
+          HuggingFace - All MPNet-Base-V2
+        </button>
+        <button
+          class="button embedder-button"
+          onclick="selectEmbedder(this, 'gpt4all_embedder')"
+        >
+          GPT4All Embedder
+        </button>
+      </div>
+
+      <button
+        class="button next-button"
+        id="next-step"
+        onclick="goToQASystem()"
+      >
+        下一步
+      </button>
+    </div>
+
+    <script>
+      let selectedLLM = null;
+      let selectedEmbedder = null;
+
+      function selectModel(button, model) {
+        // 移除所有 model-button 的 selected 樣式
+        document
+          .querySelectorAll(".model-button")
+          .forEach((btn) => btn.classList.remove("selected"));
+
+        // 設定新選擇的模型
+        button.classList.add("selected");
+        selectedLLM = model;
+
+        checkNextStepAvailability();
+      }
+
+      function selectEmbedder(button, embedder) {
+        // 移除所有 embedder-button 的 selected 樣式
+        document
+          .querySelectorAll(".embedder-button")
+          .forEach((btn) => btn.classList.remove("selected"));
+
+        // 設定新選擇的嵌入模型
+        button.classList.add("selected");
+        selectedEmbedder = embedder;
+
+        checkNextStepAvailability();
+      }
+
+      function checkNextStepAvailability() {
+        if (selectedLLM && selectedEmbedder) {
+          document.getElementById("next-step").style.display = "inline-block";
+        }
+      }
+
+      function goToQASystem() {
+        if (selectedLLM && selectedEmbedder) {
+          window.location.href = `/chatbot/?llm=${selectedLLM}&embedder=${selectedEmbedder}`;
+          // window.location.href = `/chatbot/?llm=${selectedLLM}`;
+        } else {
+          alert("請選擇完整的模型和嵌入模型");
+        }
+      }
+    </script>
+  </body>
+</html>
